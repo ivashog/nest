@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class Cat {
+  @ApiProperty({ description: 'Cat ID' })
+  id: number = 1;
+
   @ApiProperty({ example: 'Kitty', description: 'The name of the Cat' })
   name: string;
 

@@ -1,25 +1,55 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, NotFoundException, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiNotFoundResponse,
+  ApiForbiddenResponse,
 } from '@nestjs/swagger';
 import { CatsService } from './cats.service';
 import { Cat } from './classes/cat.class';
 import { CreateCatDto } from './dto/create-cat.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
 
 @ApiBearerAuth()
 @ApiTags('cats')
+@UsePipes(ValidationPipe)
 @Controller('cats')
 export class CatsController {
   constructor(private readonly catsService: CatsService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create cat' })
-  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiForbiddenResponse()
   async create(@Body() createCatDto: CreateCatDto): Promise<Cat> {
     return this.catsService.create(createCatDto);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update cat' })
+  @ApiForbiddenResponse()
+  @ApiNotFoundResponse()
+  async update(
+    @Param('id') catId: string, 
+    @Body() updateCatDto: UpdateCatDto
+  ): Promise<Cat> {
+    const updatedCat = this.catsService.update(+catId, updateCatDto);
+    if (!updatedCat) {
+      throw new NotFoundException(`Cat with id = ${catId} is not found!`)
+    }
+    return updatedCat;
+  }
+
+  @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'The list of cats',
+    type: Cat,
+    isArray: true
+  })
+  findAll(): Cat[] {
+    return this.catsService.findAll();
   }
 
   @Get(':id')
@@ -28,7 +58,12 @@ export class CatsController {
     description: 'The found record',
     type: Cat,
   })
+  @ApiNotFoundResponse()
   findOne(@Param('id') id: string): Cat {
-    return this.catsService.findOne(+id);
+    const cat = this.catsService.findOne(+id);
+    if (!cat) {
+       throw new NotFoundException(`Cat with id = ${id} is not found!`)
+    }
+    return cat;
   }
 }
