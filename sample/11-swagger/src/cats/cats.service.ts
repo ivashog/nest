@@ -5,7 +5,7 @@ import { UpdateCatDto } from './dto/update-cat.dto';
 
 @Injectable()
 export class CatsService {
-  private catsCounter: number = 0;
+  private catsCounter: number = 1;
   private cats: Cat[] = [{
       id: this.catsCounter,
       name: 'Test',
